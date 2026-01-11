@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import shutil
 import pandas as pd
@@ -7,7 +6,7 @@ import random
 
 
 # Hyperparameters
-InputFolderName = "./CODEX_SpleenDataset/"
+InputFolderName = "./Spleen_Input/"
 
 
 ## Below is for generation of pseudo-spatial maps by shuffling cell types in original REAL spatial maps.
