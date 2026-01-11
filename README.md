@@ -46,8 +46,8 @@ R version: >= 4.0 suggested
 
 Clone this repository and cd into it as below.
 ```
-git clone https://github.com/LiukangWu/CytoCommunity-plus.git
-cd CytoCommunity-plus
+git clone https://github.com/LiukangWu/CytoCommunity2.git
+cd CytoCommunity2
 ```
 
 ### Set up virtual environment for Windows
@@ -188,7 +188,7 @@ python Step4_Step4_CNVisualization.py
 Applied to healthy mouse spleen spatial proteomics data, CytoCommunity2 demonstrates performance comparable to CytoCommunity while enabling **automatic TCN alignment** across samples (i.e., colors are matched) with **much lower memory consumption**. Note that most deep learning-based unsupervised methods like CytoCommunity (unsupervised version) process images (samples) individually and thus TCNs are not aligned across samples (i.e., colors are NOT matched), which hinders comparative analysis.
 
 
-<div align=center><img src="https://github.com/LiukangWu/CytoCommunity-plus/blob/main/support/demo.png" width="750" height="650" alt="demo"/></div>  
+<div align=center><img src="https://github.com/LiukangWu/CytoCommunity2/blob/main/support/demo.png" width="750" height="650" alt="demo"/></div>  
 
 
 ## Update Log
