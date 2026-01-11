@@ -1,4 +1,4 @@
-# CytoCommunity+
+# CytoCommunity2
 
 ## Contents
 
@@ -13,13 +13,13 @@
 
 ## Overview
 
-To enhance CytoCommunity (https://github.com/huBioinfo/CytoCommunity), we present CytoCommunity+, **a unified weakly-supervised framework** for identifying and comparing tissue cellular neighborhoods (TCNs or CNs) across **large-scale spatial omics samples with single or multiple biological conditions**. 
+To enhance CytoCommunity (https://github.com/huBioinfo/CytoCommunity), we present CytoCommunity2, **a unified weakly-supervised framework** for identifying and comparing tissue cellular neighborhoods (TCNs or CNs) across **large-scale spatial omics samples with single or multiple biological conditions**. 
 
-Inspired by histopathology workflows, CytoCommunity+ first hierarchically partitions the large single-cell spatial map into small patches, performs graph construction and weakly supervised TCN learning for each patch, and finally merges results through KNN-based TCN reassignment at segmentation boundaries to ensure TCN spatial continuity. This strategy divides the original sample into patches for TCN learning, achieving **memory efficiency (typical 24G graphics memory is enough)** and also increased sample throughput. These optimizations significantly **enhance the robustness of TCNs and cross-sample alignment performance**.
+Inspired by histopathology workflows, CytoCommunity2 first hierarchically partitions the large single-cell spatial map into small patches, performs graph construction and weakly supervised TCN learning for each patch, and finally merges results through KNN-based TCN reassignment at segmentation boundaries to ensure TCN spatial continuity. This strategy divides the original sample into patches for TCN learning, achieving **memory efficiency (typical 24G graphics memory is enough)** and also increased sample throughput. These optimizations significantly **enhance the robustness of TCNs and cross-sample alignment performance**.
 
-Furthermore, to make CytoCommunity+ a unified framework that is also **applicable for single-condition spatial omics datasets**, pseudo-samples with artificial labels are generated, enabling automatic TCN alignment across real samples via **contrastive learning**.
+Furthermore, to make CytoCommunity2 a unified framework that is also **applicable for single-condition spatial omics datasets**, pseudo-samples with artificial labels are generated, enabling automatic TCN alignment across real samples via **contrastive learning**.
 
-**_In summary, the advantages of CytoCommunity+ include:_**
+**_In summary, the advantages of CytoCommunity2 include:_**
 
 **_(1) Using significantly less memory for large-scale spatial omics samples with millions of cells._**
 
@@ -106,7 +106,7 @@ The whole installation should take around 20 minutes.
 
 ### Prepare input data
 
-The input data to CytoCommunity+ includes **four** types of files (refer to "CODEX_SpleenDataset/"): 
+The input data to CytoCommunity2 includes **four** types of files (refer to "CODEX_SpleenDataset/"): 
 
 **(1)** An image (sample) name list file, named as **"ImageNameList.txt"**.
 
@@ -195,7 +195,7 @@ python Step5_BoundaryRefinement.py
 
 ### Demo
 
-Applied to healthy mouse spleen spatial proteomics data, CytoCommunity+ demonstrates performance comparable to CytoCommunity while enabling **automatic TCN alignment** across samples (i.e., colors are matched) with **much lower memory consumption**. Note that most deep learning-based unsupervised methods like CytoCommunity (unsupervised version) process images (samples) individually and thus TCNs are not aligned across samples (i.e., colors are NOT matched), which hinders comparative analysis.
+Applied to healthy mouse spleen spatial proteomics data, CytoCommunity2 demonstrates performance comparable to CytoCommunity while enabling **automatic TCN alignment** across samples (i.e., colors are matched) with **much lower memory consumption**. Note that most deep learning-based unsupervised methods like CytoCommunity (unsupervised version) process images (samples) individually and thus TCNs are not aligned across samples (i.e., colors are NOT matched), which hinders comparative analysis.
 
 
 <div align=center><img src="https://github.com/LiukangWu/CytoCommunity-plus/blob/main/support/demo.png" width="750" height="650" alt="demo"/></div>  
