@@ -69,47 +69,29 @@ class Net(torch.nn.Module):
             edge_weight=edge_weight
         )
 
-<<<<<<< HEAD
         # Change pooled adj to sparse edge_index
         B, C, F_dim = x.size()
-        x_flat = x.view(B * C, F_dim)   
-=======
-        # ===== 把 pooled adj 变成稀疏 edge_index / edge_weight，直接假设有边 =====
-        B, C, F_dim = x.size()
-        x_flat = x.view(B * C, F_dim)   # 把 B 个簇图拼成一个大图：BC 个节点
+        x_flat = x.view(B * C, F_dim)     
 
->>>>>>> 84c27ac81f7e5f4cfe70fe741e8810b5085da1bd
         edge_index_list = []
         edge_weight_list = []
 
         for b in range(B):
             adj_b = adj[b]   # [C, C]
-<<<<<<< HEAD
-            row, col = (adj_b != 0).nonzero(as_tuple=True)
             # Adding the batch offset: The index range of the C nodes of the b-th graph is [b*C, (b+1)*C-1]
-=======
-            # 找到非零边位置
             row, col = (adj_b != 0).nonzero(as_tuple=True)
-            # 加上 batch 偏移量：第 b 个图的 C 个节点索引区间是 [b*C, (b+1)*C-1]
->>>>>>> 84c27ac81f7e5f4cfe70fe741e8810b5085da1bd
             edge_index_list.append(torch.stack([row + b * C, col + b * C], dim=0))  # [2, E_b]
             edge_weight_list.append(adj_b[row, col])
 
         pooled_edge_index  = torch.cat(edge_index_list, dim=1).long()             # [2, E_tot]
         pooled_edge_weight = torch.cat(edge_weight_list).to(x_flat.dtype)         # [E_tot]
-<<<<<<< HEAD
-        x_flat = self.conv3(x_flat, pooled_edge_index, pooled_edge_weight)
-        x = x_flat.view(B, C, -1)
-        x = x.mean(dim=1)   
-=======
 
         x_flat = self.conv3(x_flat, pooled_edge_index, pooled_edge_weight)
 
-        # reshape 回 [B, C, F']
+        # reshape [B, C, F']
         x = x_flat.view(B, C, -1)
         
         x = x.mean(dim=1)   # [B, F']
->>>>>>> 84c27ac81f7e5f4cfe70fe741e8810b5085da1bd
         x = F.relu(self.lin1(x))
         x = self.lin2(x)
 
