@@ -11,12 +11,8 @@ from sklearn.neighbors import NearestNeighbors
 
 # Hyperparameters
 KNN_K = 20
-
-<<<<<<< HEAD
 InputFolderName = "./TNBC_Input/"
-=======
-InputFolderName = "./Step0_Output/"
->>>>>>> 84c27ac81f7e5f4cfe70fe741e8810b5085da1bd
+
 ThisStep_OutputFolderName = "./Step1_Output/"
 if os.path.exists(ThisStep_OutputFolderName):
     shutil.rmtree(ThisStep_OutputFolderName)
