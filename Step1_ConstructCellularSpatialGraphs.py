@@ -130,9 +130,18 @@ for i in range(0, len(region_name_list)):
     graph_label = np.loadtxt(GraphLabel_filename, dtype='int64', delimiter="\t")  # change to int64 from int due to expected torch.LongTensor.
     y = torch.from_numpy(graph_label)
 
-    edge_weight = torch.ones(edge_index.size(1), dtype=torch.float32)
-    data = Data(x=x, y=y, edge_index=edge_index, edge_weight=edge_weight, name=region_name)
+    is_pseudo = torch.tensor([('_pseudo' in region_name)], dtype=torch.bool)
+    # graph_mask: True 表示参与 MinCut/Ortho（real），False 表示不参与（pseudo）
+    graph_mask = ~is_pseudo
+    data = Data(
+        x=x,
+        y=y,
+        edge_index=edge_index,
+        is_pseudo=is_pseudo,
+        graph_mask=graph_mask
+    )
     data_list.append(data)
+
 
 # Define "SpatialOmicsImageDataset" class based on ordinary Python list.
 class SpatialOmicsImageDataset(InMemoryDataset):                                          

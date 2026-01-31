@@ -7,21 +7,24 @@ import torch
 import torch.nn.functional as F
 from torch.nn import Linear
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import GraphConv
+from torch_geometric.nn import GraphConv,DenseGraphConv
 from torch_geometric.data import InMemoryDataset
 from sparse_mincut_pool import sparse_mincut_pool_batch
 
 
 ## Hyperparameters
-Num_TCN = 10
+Num_TCN = 4
 Num_Run = 10
 Num_Epoch = 1000
-Num_Class = 3
+Num_Class = 2
 Embedding_Dimension = 128
-LearningRate = 0.001
+LearningRate = 0.0001
 MiniBatchSize = 2
 beta = 0.9
 
+
+Step0_OutputFolderName = "./Step0_Output/"
+use_pseudo_samples = os.path.exists(Step0_OutputFolderName)
 
 ## Load dataset from Step1 
 LastStep_OutputFolderName = "./Step1_Output/"
@@ -57,48 +60,26 @@ class Net(torch.nn.Module):
         super(Net, self).__init__()
         self.conv1  = GraphConv(in_channels, hidden_channels)
         self.pool1  = Linear(hidden_channels, Num_TCN)
-        self.conv3  = GraphConv(hidden_channels, hidden_channels)
+        self.conv3  = DenseGraphConv(hidden_channels, hidden_channels)
         self.lin1   = Linear(hidden_channels, hidden_channels)
         self.lin2   = Linear(hidden_channels, out_channels)
 
-    def forward(self, x, edge_index, batch, edge_weight=None):
-        x = F.relu(self.conv1(x, edge_index, edge_weight))
-        s = self.pool1(x)  
+    def forward(self, x, edge_index, batch, graph_mask=None):
+        x = F.relu(self.conv1(x, edge_index))
+        s = self.pool1(x)
+
         x, adj, mc_loss, o_loss = sparse_mincut_pool_batch(
-            x, edge_index, s, batch,
-            edge_weight=edge_weight
+            x, edge_index, s, batch, graph_mask=graph_mask
         )
-
-        # Change pooled adj to sparse edge_index
-        B, C, F_dim = x.size()
-        x_flat = x.view(B * C, F_dim)     
-
-        edge_index_list = []
-        edge_weight_list = []
-
-        for b in range(B):
-            adj_b = adj[b]   # [C, C]
-            # Adding the batch offset: The index range of the C nodes of the b-th graph is [b*C, (b+1)*C-1]
-            row, col = (adj_b != 0).nonzero(as_tuple=True)
-            edge_index_list.append(torch.stack([row + b * C, col + b * C], dim=0))  # [2, E_b]
-            edge_weight_list.append(adj_b[row, col])
-
-        pooled_edge_index  = torch.cat(edge_index_list, dim=1).long()             # [2, E_tot]
-        pooled_edge_weight = torch.cat(edge_weight_list).to(x_flat.dtype)         # [E_tot]
-
-        x_flat = self.conv3(x_flat, pooled_edge_index, pooled_edge_weight)
-
-        # reshape [B, C, F']
-        x = x_flat.view(B, C, -1)
-        
-        x = x.mean(dim=1)   # [B, F']
+        x = self.conv3(x, adj) 
+        x = x.mean(dim=1)   
         x = F.relu(self.lin1(x))
         x = self.lin2(x)
 
         return F.log_softmax(x, dim=-1), mc_loss, o_loss, s, adj
 
 
-def train_epoch(model, loader, optimizer, device):
+def train_epoch(model, loader, optimizer, device, use_pseudo_samples):
     model.train()
     total_loss = 0
     total_ce_loss = 0
@@ -108,8 +89,15 @@ def train_epoch(model, loader, optimizer, device):
     for data in loader:
         data = data.to(device)
         optimizer.zero_grad()
+
+        # graph_mask: True means "participate in MinCut/Ortho"
+        if use_pseudo_samples:
+            graph_mask = data.graph_mask.view(-1).to(device)  # [B]
+        else:
+            graph_mask = None  # all graphs are real
+
         out, mc_loss, o_loss, _, _ = model(
-            data.x, data.edge_index, data.batch, data.edge_weight
+            data.x, data.edge_index, data.batch, graph_mask=graph_mask
         )
         cross_entropy_loss = F.nll_loss(out, data.y.view(-1))
         mincut_loss = mc_loss + o_loss
@@ -150,7 +138,9 @@ for run_ind in range(1, Num_Run+1):
         writer.writerow(["Epoch", "TotalLoss", "CrossEntropyLoss", "MinCutLoss"])
 
     for epoch in range(1, Num_Epoch+1):
-        total_loss, ce_loss, mincut_loss = train_epoch(model, train_loader, optimizer, device)
+        total_loss, ce_loss, mincut_loss = train_epoch(
+            model, train_loader, optimizer, device, use_pseudo_samples
+        )
         with open(loss_csv, "a", newline='') as f0:
             csv.writer(f0).writerow([epoch, total_loss, ce_loss, mincut_loss])
         if epoch % 10 == 0:
@@ -163,8 +153,11 @@ for run_ind in range(1, Num_Run+1):
         data = data.to(device)
         with torch.no_grad():
             _, _, _, s, pooled_adj = model(
-                data.x, data.edge_index, data.batch, data.edge_weight
+                data.x, data.edge_index, data.batch
             )
+
+        if use_pseudo_samples and data.y.item() == 0:
+            continue
 
         # Save the node allocation matrix
         assign_np = torch.softmax(s, dim=-1).cpu().numpy()      
