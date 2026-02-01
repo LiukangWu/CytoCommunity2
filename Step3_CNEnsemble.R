@@ -1,4 +1,4 @@
-Dataset      <- "./TNBC_Input"
+Dataset      <- "./CODEX_SpleenDataset"
 Step2_Output <- "./Step2_Output"
 Step3_Output <- "./Step3_Output"
 

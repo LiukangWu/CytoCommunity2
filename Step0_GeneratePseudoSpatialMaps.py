@@ -6,7 +6,7 @@ import random
 
 
 # Hyperparameters
-InputFolderName = "./Spleen_Input/"
+InputFolderName = "./CODEX_SpleenDataset/"
 
 
 ## Below is for generation of pseudo-spatial maps by shuffling cell types in original REAL spatial maps.

@@ -12,7 +12,7 @@ sci_palettes.register_cmap("d3_category20")    # register a specific palette for
 
 
 ## Hyperparameters
-InputFolderName = "./MIBI-TNBC_Input/"
+InputFolderName = "./CODEX_SpleenDataset/"
 LastStep_OutputFolderName = "./Step3_Output/"
 
 ## Create output folders
@@ -48,7 +48,7 @@ unique_cell_type_df = pd.read_csv(
 UniqueCellType_vec = unique_cell_type_df['UniqueCellType'].values.tolist()
 
 ## Initialize a TCN code list used for matching color palettes across different TCN plots.
-UniqueTCN_vec = list(range(1, 21))  # 20 TCNs at maximum.
+UniqueTCN_vec = list(range(1, 5))  # 20 TCNs at maximum.
 UniqueTCN_vec = [str(element) for element in UniqueTCN_vec]
 
 
@@ -84,7 +84,7 @@ for graph_index in range(0, len(region_name_list)):
     target_graph_map["Cell_Type"] = pd.Categorical(target_graph_map["Cell_Type"], UniqueCellType_vec)
 
     ## Import the final TCN labels to target graph x/y coordinates.
-    MajorityVoting_FileName = LastStep_OutputFolderName + "ImageCollection/" + region_name + "/CNLabel_MajorityVoting.csv"
+    MajorityVoting_FileName = LastStep_OutputFolderName + region_name + "_CNLabel_MajorityVoting.csv"
     target_graph_map["TCN_Label"] = np.loadtxt(MajorityVoting_FileName, dtype='int', delimiter=",")
     # Converting integer list to string list for making color scheme discrete.
     target_graph_map.TCN_Label = target_graph_map.TCN_Label.astype(str)
@@ -94,7 +94,7 @@ for graph_index in range(0, len(region_name_list)):
 
     #-----------------------------------------Generate plots-------------------------------------------------#
     ## Plot x/y map with "TCN_Label" coloring.
-    TCN_plot = sns.scatterplot(x="x_coordinate", y="y_coordinate", data=target_graph_map, hue="CN_Label", palette="d3_category20", alpha=1.0, s=10.0, legend="full")   # 20 colors at maximum.
+    TCN_plot = sns.scatterplot(x="x_coordinate", y="y_coordinate", data=target_graph_map, hue="TCN_Label", palette="d3_category20", alpha=1.0, s=10.0, legend="full")   # 20 colors at maximum.
     # Hide all four spines
     TCN_plot.spines.right.set_visible(False)
     TCN_plot.spines.left.set_visible(False)

@@ -10,8 +10,8 @@ from sklearn.neighbors import NearestNeighbors
 
 
 # Hyperparameters
-KNN_K = 20
-InputFolderName = "./TNBC_Input/"
+KNN_K = 50
+InputFolderName = "./Step0_Output/"
 
 ThisStep_OutputFolderName = "./Step1_Output/"
 if os.path.exists(ThisStep_OutputFolderName):
