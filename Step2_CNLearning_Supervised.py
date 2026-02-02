@@ -128,6 +128,14 @@ def train_epoch(model, loader, optimizer, device, use_pseudo_samples):
 
     return avg_total, avg_ce, avg_mc
 
+def shuffle_pseudo(dataset):
+    for i in range(len(dataset)):
+        data = dataset[i]
+        if data.is_pseudo.item():
+            perm = torch.randperm(data.x.size(0))
+            data.x = data.x[perm]
+
+
 print("Start:", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 for run_ind in range(1, Num_Run+1):    
     print(f"\n=== This is Run {run_ind:02d} ===")
@@ -151,6 +159,9 @@ for run_ind in range(1, Num_Run+1):
         writer.writerow(["Epoch", "TotalLoss", "CrossEntropyLoss", "MinCutLoss"])
 
     for epoch in range(1, Num_Epoch+1):
+        if use_pseudo_samples:
+            shuffle_pseudo(dataset)
+            
         total_loss, ce_loss, mincut_loss = train_epoch(
             model, train_loader, optimizer, device, use_pseudo_samples
         )
