@@ -2,74 +2,133 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(ggrepel)
   library(dplyr)
-  library(stringr)
+  library(ggtext)
   library(showtext)
+  library(sysfonts)
 })
 
 font_add("Arial", "C:/Windows/Fonts/arial.ttf")
 showtext_auto()
-
-LOAD_DIR <- "./data/Communication/config"
-OUT_DIR  <- "./plot/Communication/SpearmanBetweenCNs_plot/CCA_plots"
+# =========================
+# Config
+# =========================
+IN_DIR  <- "./data/Communication/config"
+OUT_DIR <- "./data/Communication/plot"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
-# 只读取 coefficients 输出
-csvs <- list.files(
-  LOAD_DIR,
-  pattern = "^CCA_coefficients_CN[0-9]+_vs_CN[0-9]+\\.csv$",
+# 读取所有系数文件
+coef_files <- list.files(
+  IN_DIR,
+  pattern = "^CCA_coordinates_CN.+_vs_CN.+\\.csv$",
   full.names = TRUE
 )
 
-for (f in csvs) {
-  # 提取 CN 编号
-  m <- stringr::str_match(basename(f), "^CCA_coefficients_CN([0-9]+)_vs_CN([0-9]+)\\.csv$")
-  if (any(is.na(m))) next
-  cnA <- m[2]; cnB <- m[3]
-  
-  # 读取数据
-  df <- read.csv(f, stringsAsFactors = FALSE, check.names = FALSE)
-  
-  # 相关系数（可选）
-  rho1 <- if ("rho1" %in% names(df)) round(df$rho1[1], 2) else NA_real_
-  
-  # 绘图（坐标轴固定在 [-1, 1]）
-  p <- ggplot(df, aes(x = CN_A_coef, y = CN_B_coef)) +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "grey80", linewidth = 0.5) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "grey80", linewidth = 0.5) +
-    geom_point(color = "#2E86AB", alpha = 0.8, size = 3) +
-    geom_text_repel(
-      aes(label = CellType),
-      size = 3.2,
-      max.overlaps = Inf,
-      min.segment.length = 0,
-      segment.size = 0.25,
-      segment.color = "grey50",
-      box.padding = 0.35,
-      point.padding = 0.3
-    ) +
-    coord_fixed(ratio = 1, xlim = c(-1, 1), ylim = c(-1, 1)) +  # 固定范围
-    theme_classic(base_size = 12, base_family = "Arial") +
-    theme(
-      plot.title = element_text(size = 12, hjust = 0.5),
-      axis.title  = element_text(face = "bold", size = 10),
-      axis.text   = element_text(size = 10),
-      panel.background = element_rect(fill = "white"),
-      plot.background  = element_rect(fill = "white", color = NA),
-      plot.margin = margin(t = 15, r = 10, b = 10, l = 10)
-    ) +
-    labs(
-      title = sprintf("First canonical variate pair\n(correlation coefficient = %.2f)", rho1),
-      x = sprintf("CN%s canonical coefficient", cnA),
-      y = sprintf("CN%s canonical coefficient", cnB)
-    )
-  
-  out_pdf <- file.path(
-    OUT_DIR,
-    sub("\\.csv$", "_scatter.pdf", basename(f))
-  )
-  ggsave(out_pdf, p, width = 6, height = 6, dpi = 1200, bg = "white")
-  message("✅ [COEFFICIENTS] CN", cnA, " vs CN", cnB, " 已保存：", out_pdf)
+if (length(coef_files) == 0) {
+  stop("No CCA coefficient files found in: ", IN_DIR)
 }
 
-message("\n✅ 典型系数散点图已全部生成")
+# =========================
+# Helper: make one plot
+# =========================
+plot_one_cca <- function(coef_file, out_dir) {
+  fname <- basename(coef_file)
+  
+  cnA <- sub("^CCA_coordinates_CN(.+)_vs_CN(.+)\\.csv$", "\\1", fname)
+  cnB <- sub("^CCA_coordinates_CN(.+)_vs_CN(.+)\\.csv$", "\\2", fname)
+  
+  df <- read.csv(coef_file, stringsAsFactors = FALSE, check.names = FALSE)
+  
+  # rho1 / rho2
+  rho1 <- if ("rho1" %in% colnames(df)) unique(na.omit(df$rho1))[1] else NA_real_
+  rho2 <- if ("rho2" %in% colnames(df)) unique(na.omit(df$rho2))[1] else NA_real_
+  
+  df_A <- df %>%
+  transmute(
+    CellType = CellType,
+    x = CN_A_coord_can1,
+    y = CN_A_coord_can2,
+    Group = paste0("CN-", cnA)
+  ) %>%
+  filter(!is.na(x), !is.na(y))
 
+  df_B <- df %>%
+    transmute(
+      CellType = CellType,
+      x = CN_B_coord_can1,
+      y = CN_B_coord_can2,
+      Group = paste0("CN-", cnB)
+    ) %>%
+    filter(!is.na(x), !is.na(y))
+  
+  plot_df <- bind_rows(df_A, df_B)
+  if (nrow(plot_df) == 0) {
+    warning("Skip file (no valid points): ", fname)
+    return(NULL)
+  }
+  
+  x_lab <- if (!is.na(rho1)) {
+    paste0("First canonical variate pair\n(correlation coefficient = ", sprintf("%.2f", rho1), ")")
+  }
+  y_lab <- if (!is.na(rho2)) {
+    paste0("Second canonical variate pair\n(correlation coefficient = ", sprintf("%.2f", rho2), ")")
+  }
+  
+  colorA <- "#B24A4A"
+  colorB <- "#3C78B5"
+
+  color_map <- setNames(
+    c(colorA, colorB),
+    c(paste0("CN-", cnA), paste0("CN-", cnB))
+  )
+
+  title_txt <- paste0(
+    "<span style='color:", colorA, ";'>CN-", cnA, "</span>",
+    " and ",
+    "<span style='color:", colorB, ";'>CN-", cnB, "</span>"
+  )
+
+  p <- ggplot(plot_df, aes(x = x, y = y, color = Group, label = CellType)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey65", linewidth = 0.4) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey65", linewidth = 0.4) +
+    geom_point(size = 2.3) +
+    geom_text_repel(
+      size = 3.2,
+      box.padding = 0.25,
+      point.padding = 0.2,
+      segment.color = "grey70",
+      segment.size = 0.3,
+      max.overlaps = Inf,
+      family = "Arial"
+    ) +
+    scale_color_manual(values = color_map) +
+    scale_x_continuous(limits = c(-1, 1), breaks = c(-1, -0.5, 0, 0.5, 1)) +
+    scale_y_continuous(limits = c(-1, 1), breaks = c(-1, -0.5, 0, 0.5, 1)) +
+    theme_classic(base_size = 10, base_family = "Arial") +
+    theme(
+      axis.line = element_line(linewidth = 0.6, color = "black"),
+      axis.ticks = element_line(linewidth = 0.5, color = "black"),
+      legend.position = "none",
+      plot.title = ggtext::element_markdown(hjust = 0.5, face = "plain", family = "Arial"),
+      axis.title = element_text(family = "Arial"),
+      axis.text = element_text(family = "Arial"),
+      plot.margin = margin(10, 15, 10, 10)
+    ) +
+    labs(
+      title = title_txt,
+      x = x_lab,
+      y = y_lab
+    )
+  
+  pdf_file <- file.path(out_dir, paste0("CCA_plot_CN", cnA, "_vs_CN", cnB, ".pdf"))
+  
+  ggsave(pdf_file, p, width = 6, height = 6, units = "in")
+  
+  message("Saved: ", pdf_file)
+}
+
+# =========================
+# Loop
+# =========================
+for (f in coef_files) {
+  plot_one_cca(f, OUT_DIR)
+}
