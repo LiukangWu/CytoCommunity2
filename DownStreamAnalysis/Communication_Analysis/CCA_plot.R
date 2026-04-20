@@ -13,7 +13,7 @@ showtext_auto()
 # Config
 # =========================
 IN_DIR  <- "./data/Communication/config"
-OUT_DIR <- "./data/Communication/plot"
+OUT_DIR <- "./plot/Communication/SpearmanBetweenCNs_plot/CCA_plots"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # 读取所有系数文件

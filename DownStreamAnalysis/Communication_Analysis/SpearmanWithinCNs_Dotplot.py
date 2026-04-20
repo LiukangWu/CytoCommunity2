@@ -14,7 +14,7 @@ from matplotlib.colorbar import ColorbarBase
 
 # 路径
 LONG_FILE = os.path.join("data", "Communication", "config", "EnrichScoreMatrix_long.csv")
-OUT_DIR = os.path.join("data", "Communication", "DiffByCondition_perm_shared")
+OUT_DIR = os.path.join("plot", "Communication", "SpearmanWithinCNs_plot","Dotplot")
 TABLE_DIR = os.path.join(OUT_DIR, "tables")
 FIG_DIR = os.path.join(OUT_DIR, "figures")
 
