@@ -190,78 +190,17 @@ After obtaining the clustering results in 'Step4_Output', we can proceed with th
 cd CytoCommunity2
 matlab -batch "run('./DownStreamAnalysis/DifferentialComposed_Analysis/Step1_CellTypeEnrichmentMatrix.m')"
 ```
-The enrichment score matrix is the foundation for our downstream analysis, and next, we can start with dominant cell type analysis.
-```batch
-python DownStreamAnalysis/DominateCT_Analysis/Heatmap_config.py
-python DownStreamAnalysis/DominateCT_Analysis/plot.py
-```
-<p align="center">
-  <img src="support/heatmap.png" width="700">
-</p>
-Next, we evaluated the reproducibility of the CNs.
 
+**(1)** The enrichment score matrix is the foundation for our downstream analysis, and next, we evaluated the reproducibility of the CNs.
 ```batch
 python DownStreamAnalysis/Recurrency_Analysis/OC_config.py
-python DownStreamAnalysis/Recurrency_Analysis/plot.py
+jupyter notebook DownStreamAnalysis/Recurrency_Analysis/plot.ipynb
 ```
 <p align="center">
   <img src="support/OC.png" width="700">
 </p>
 
-We next evaluated the coherence of the CNs.
-```batch
-python DownStreamAnalysis/Coherence_Analysis/Coherence_config.py
-python DownStreamAnalysis/Coherence_Analysis/plot.py
-```
-<div align="center">
-<div style="display:flex; justify-content:center; gap:10px;">
-<div>
-<b>CHAOS score</b><br>
-<img src="support/CHAOS.png" width="300">
-</div>
-
-<div>
-<b>PAS score</b><br>
-<img src="support/PAS.png" width="300">
-</div>
-
-</div>
-
-</div>
-
-We next investigated cell–cell communication both within and between CNs.
-
-```batch
-python DownStreamAnalysis/Communication_Analysis/SpermanWithinCNs_config.py
-python DownStreamAnalysis/Communication_Analysis/SpermanWithinCNs_plot.py
-```
-This is the result of cell–cell communication within CN1.
-<p align="center">
-  <img src="support/spearmanwith.png" width="700">
-</p>
-
-Next, we perform canonical correlation analysis (CCA) between CNs.
-```batch
-Rscript DownStreamAnalysis/Communication_Analysis/CCA_config.R
-Rscript DownStreamAnalysis/Communication_Analysis/CCA_plot.R
-```
-<p align="center">
-  <img src="support/CCA.png" width="700">
-</p>
-
-After obtaining the first canonical correlation pair between CNs, we use it to analyze cell–cell communication between CNs.
-
-```batch
-python DownStreamAnalysis/Communication_Analysis/SpermanBetweenCNs_config.py
-python DownStreamAnalysis/Communication_Analysis/SpermanBetweenCNs_plot.py
-```
-
-This is the result of cell–cell communication between CN6 and CN10.
-<p align="center">
-  <img src="support/spearmanbet.png" width="700">
-</p>
-
-Finally, we perform an analysis and visualization of the DCFs.
+**(2)** We perform an analysis and visualization of the DCFs.
 ```batch
 python DownStreamAnalysis/DifferentialComposed_Analysis/Step2_test_GraphLabel.py
 Rscript DownStreamAnalysis/DifferentialComposed_Analysis/Step3_t_test.R
@@ -285,6 +224,85 @@ python DownStreamAnalysis/DifferentialComposed_Analysis/Pvalue_dotplot.py
 ```
 <p align="center">
   <img src="support/dot.png" width="700">
+</p>
+
+**(3)** Next, we can start with dominant cell type analysis.
+```batch
+python DownStreamAnalysis/DominateCT_Analysis/Heatmap_config.py
+python DownStreamAnalysis/DominateCT_Analysis/plot.py
+```
+<p align="center">
+  <img src="support/heatmap.png" width="700">
+</p>
+
+**(4)** We evaluated the coherence of the CNs.
+```batch
+python DownStreamAnalysis/Coherence_Analysis/Coherence_config.py
+python DownStreamAnalysis/Coherence_Analysis/plot.py
+```
+<div align="center">
+<div style="display:flex; justify-content:center; gap:10px;">
+<div>
+<b>CHAOS score</b><br>
+<img src="support/CHAOS.png" width="300">
+</div>
+
+<div>
+<b>PAS score</b><br>
+<img src="support/PAS.png" width="300">
+</div>
+
+</div>
+
+</div>
+
+
+
+**(5)** We investigated cell–cell communication both within and between CNs.
+
+```batch
+python DownStreamAnalysis/Communication_Analysis/SpermanWithinCNs_config.py
+python DownStreamAnalysis/Communication_Analysis/SpermanWithinCNs_plot.py
+```
+This is the result of cell–cell communication within CN1.
+<p align="center">
+  <img src="support/spearmanwith.png" width="700">
+</p>
+
+We also visualized differences in CT-pair communication strength across conditions.
+```batch
+python DownStreamAnalysis/Communication_Analysis/SpearmanWithinCNs_StackPlot.py
+```
+
+<p align="center">
+  <img src="support/communication_stackPlot.png" width="700">
+</p>
+
+Next, we perform canonical correlation analysis (CCA) between CNs.
+```batch
+Rscript DownStreamAnalysis/Communication_Analysis/CCA_config.R
+Rscript DownStreamAnalysis/Communication_Analysis/CCA_CycleConfig.R
+python DownStreamAnalysis/Communication_Analysis/CCA_CyclePlot.py
+```
+<p align="center">
+  <img src="support/communication_cyclePlot.png" width="700">
+</p>
+
+After obtaining the first canonical correlation pair between CNs, we use it to analyze cell–cell communication between CNs.
+
+```batch
+python DownStreamAnalysis/Communication_Analysis/SpermanBetweenCNs_config.py
+python DownStreamAnalysis/Communication_Analysis/SpermanBetweenCNs_plot.py
+```
+
+This is the result of cell–cell communication between CN6 and CN10.
+<p align="center">
+  <img src="support/spearmanbet.png" width="700">
+</p>
+
+**(6)** Finally, we showed differences in the degree of cell-type aggregation within different CNs across conditions, using Moran’s I to quantify the level of aggregation.
+<p align="center">
+  <img src="support/moran's I.png" width="700">
 </p>
 
 ## Update Log
